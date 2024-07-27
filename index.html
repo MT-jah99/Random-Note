@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Whole Note Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            position: relative;
+            width: 80%;
+            height: 320px;
+            margin-top: 50px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .custom-hr {
+            border: none;
+            border-top: 2px solid #000;
+            margin: 0;
+            position: absolute;
+            width: calc(100% + 50px);
+        }
+        .hr1 { top: 20px; }
+        .hr2 { top: 40px; }
+        .hr3 { top: 60px; }
+        .hr4 { top: 80px; }
+        .hr5 { top: 100px; }
+        .g-clef {
+            position: absolute;
+            top: -25px;
+            left: 10px;
+            width: 100px;
+        }
+        .whole-note {
+            position: absolute;
+            width: 35px;
+        }
+        .ledger-line {
+            position: absolute;
+            border-top: 2px solid #000;
+            width: 45px;
+            display: none;
+        }
+        #randomButton, #toggleNoteNamesButton {
+            display: block;
+            margin: 20px auto 0;
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #randomButton {
+            background-color: #007bff;
+        }
+        #randomButton:hover {
+            background-color: #0056b3;
+        }
+        #toggleNoteNamesButton {
+            background-color: #28a745;
+        }
+        #toggleNoteNamesButton:hover {
+            background-color: #218838;
+        }
+        .metronome {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-group button {
+            margin: 0 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .button-group button:hover {
+            background-color: #e0e0e0;
+        }
+        .button-group button.active {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+        .note-name {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            width: 35px;
+            color: red;
+        }
+        .note-name.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.ibb.co/qj4js0r/G-clef-svg.png" alt="G Clef" class="g-clef">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note" class="whole-note" id="wholeNote1">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 2" class="whole-note" id="wholeNote2">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 3" class="whole-note" id="wholeNote3">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 4" class="whole-note" id="wholeNote4">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 5" class="whole-note" id="wholeNote5">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 6" class="whole-note" id="wholeNote6">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 7" class="whole-note" id="wholeNote7">
+        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 8" class="whole-note" id="wholeNote8">
+        
+        <hr class="custom-hr hr1">
+        <hr class="custom-hr hr2">
+        <hr class="custom-hr hr3">
+        <hr class="custom-hr hr4">
+        <hr class="custom-hr hr5">
+
+        <div class="ledger-line" id="ledgerLine1"></div>
+        <div class="ledger-line" id="ledgerLine2"></div>
+        <div class="ledger-line" id="ledgerLine3"></div>
+        <div class="ledger-line" id="ledgerLine4"></div>
+        <div class="ledger-line" id="ledgerLine5"></div>
+        <div class="ledger-line" id="ledgerLine6"></div>
+        <div class="ledger-line" id="ledgerLine7"></div>
+        <div class="ledger-line" id="ledgerLine8"></div>
+
+        <div class="note-name" id="noteName1"></div>
+        <div class="note-name" id="noteName2"></div>
+        <div class="note-name" id="noteName3"></div>
+        <div class="note-name" id="noteName4"></div>
+        <div class="note-name" id="noteName5"></div>
+        <div class="note-name" id="noteName6"></div>
+        <div class="note-name" id="noteName7"></div>
+        <div class="note-name" id="noteName8"></div>
+    </div>
+
+    <button id="randomButton" onclick="positionWholeNote()">Randomize Notes</button>
+    <button id="toggleNoteNamesButton" onclick="toggleNoteNames()">Hide Note Names</button>
+
+    <div class="button-group">
+        <button id="button1" onclick="togglePositions(this, [90, 70])">E/G</button>
+        <button id="button2" onclick="togglePositions(this, [90, 70, 60])">E/G/A</button>
+        <button id="button3" onclick="togglePositions(this, [100, 90, 70, 60])">D/E/G/A</button>
+        <button id="button4" onclick="togglePositions(this, [110, 100, 90, 70, 60])">C/D/E/G/A</button>
+        <button id="button5" onclick="togglePositions(this, [110, 100, 90, 80, 70, 60])">C/D/E/F/G/A</button>
+        <button id="button6" onclick="togglePositions(this, [110, 100, 90, 80, 70, 60, 50, 40])">C/D/E/F/G/A/B/C</button>
+    </div>
+
+    <div class="metronome">
+        <h1>เมโทรนอม</h1>
+        <div class="controls">
+            <label for="tempo">ความเร็ว: <span id="tempo-value">60</span> BPM</label>
+            <input type="range" id="tempo" min="40" max="200" value="60">
+        </div>
+        <button id="start-stop">เริ่ม</button>
+    </div>
+
+    <script>
+        let currentPositions = [-10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
+        let selectedPositions = [];
+        let showNoteNames = true;
+
+        const noteNames = {
+            '-10': 'A', '0': 'G', '10': 'F', '20': 'E', 
+            '30': 'D', '40': 'C', '50': 'B', '60': 'A', 
+            '70': 'G', '80': 'F', '90': 'E', '100': 'D', '110': 'C'
+        };
+
+        function toggleNoteNames() {
+            showNoteNames = !showNoteNames;
+            const noteNameElements = document.getElementsByClassName('note-name');
+            const button = document.getElementById('toggleNoteNamesButton');
+            
+            for (let element of noteNameElements) {
+                element.classList.toggle('hidden');
+            }
+            
+            button.textContent = showNoteNames ? 'Hide Note Names' : 'Show Note Names';
+        }
+
+        function togglePositions(button, positions) {
+            if (button.classList.contains('active')) {
+                button.classList.remove('active');
+                selectedPositions = [];
+                currentPositions = [-10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
+            } else {
+                document.querySelectorAll('.button-group button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                selectedPositions = positions;
+                currentPositions = positions;
+            }
+            positionWholeNote();
+        }
+
+        function getRandomPosition() {
+            return currentPositions[Math.floor(Math.random() * currentPositions.length)];
+        }
+
+        function positionWholeNote() {
+            const notes = document.getElementsByClassName('whole-note');
+            const ledgerLines = document.getElementsByClassName('ledger-line');
+            const noteNameElements = document.getElementsByClassName('note-name');
+
+            for (let i = 0; i < notes.length; i++) {
+                const noteTop = getRandomPosition();
+                notes[i].style.top = noteTop + 'px';
+                notes[i].style.left = (138 + i * 70) + 'px';
+
+                // แสดงชื่อโน้ต
+                const noteName = noteNames[noteTop.toString()];
+                noteNameElements[i].textContent = noteName;
+                noteNameElements[i].style.top = (noteTop + 35) + 'px';
+                noteNameElements[i].style.left = (138 + i * 70) + 'px';
+                noteNameElements[i].classList.toggle('hidden', !showNoteNames);
+
+                if (noteTop === 110 || noteTop === -10) {
+                    ledgerLines[i].style.top = (noteTop + 10) + 'px';
+                    ledgerLines[i].style.left = (parseInt(notes[i].style.left) - 7) + 'px';
+                    ledgerLines[i].style.display = 'block';
+                } else {
+                    ledgerLines[i].style.display = 'none';
+                }
+            }
+        }
+
+        window.onload = function() {
+            positionWholeNote();
+            setupMetronome();
+        };
+
+        function setupMetronome() {
+            const tempoInput = document.getElementById('tempo');
+            const tempoValue = document.getElementById('tempo-value');
+            const startStopButton = document.getElementById('start-stop');
+            let isRunning = false;
+            let intervalId;
+
+            tempoInput.addEventListener('input', function() {
+                tempoValue.textContent = tempoInput.value;
+                if (isRunning) {
+                    clearInterval(intervalId);
+                    startMetronome();
+                }
+            });
+
+            startStopButton.addEventListener('click', function() {
+                if (isRunning) {
+                    clearInterval(intervalId);
+                    startStopButton.textContent = 'เริ่ม';
+                } else {
+                    startMetronome();
+                    startStopButton.textContent = 'หยุด';
+                }
+                isRunning = !isRunning;
+            });
+
+            function startMetronome() {
+                const tempo = 60000 / tempoInput.value;
+                intervalId = setInterval(playClick, tempo);
+            }
+
+            function playClick() {
+                const click = new Audio('click.mp3');
+                click.play();
+            }
+        }
+    </script>
+</body>
+</html>
+</antArtif

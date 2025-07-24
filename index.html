@@ -47,13 +47,21 @@
             display: none;
         }
 
+        /* New style for accidentals */
+        .accidental {
+            position: absolute;
+            font-size: 38px;
+            font-weight: normal;
+            display: none;
+        }
+
         /* === Styles for Dimensional Buttons === */
         .main-controls {
             text-align: center;
             margin: 10px 0; /* Small spacing */
         }
 
-        #randomButton, #toggleNoteNamesButton, #arrangeNotesButton, .metronome button {
+        #randomButton, #toggleNoteNamesButton, #arrangeNotesButton, #toggleAccidentalsButton, .metronome button {
             display: inline-block;
             margin: 10px;
             padding: 15px 30px;
@@ -68,12 +76,12 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         }
 
-        #randomButton:hover, #toggleNoteNamesButton:hover, #arrangeNotesButton:hover, .metronome button:hover {
+        #randomButton:hover, #toggleNoteNamesButton:hover, #arrangeNotesButton:hover, #toggleAccidentalsButton:hover, .metronome button:hover {
             transform: translateY(-3px); /* Lift button on hover */
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25); /* Enhance shadow */
         }
 
-        #randomButton:active, #toggleNoteNamesButton:active, #arrangeNotesButton:active, .metronome button:active {
+        #randomButton:active, #toggleNoteNamesButton:active, #arrangeNotesButton:active, #toggleAccidentalsButton:active, .metronome button:active {
             transform: translateY(1px); /* "Press down" effect */
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Reduce shadow when active */
         }
@@ -86,6 +94,10 @@
         }
         #arrangeNotesButton {
             background: linear-gradient(145deg, #ff9800, #fb8c00);
+        }
+        /* New button style */
+        #toggleAccidentalsButton {
+            background: linear-gradient(145deg, #9C27B0, #8E24AA);
         }
         
         .metronome {
@@ -188,11 +200,22 @@
         <div class="note-name" id="noteName6"></div>
         <div class="note-name" id="noteName7"></div>
         <div class="note-name" id="noteName8"></div>
+
+        <!-- New elements for accidentals -->
+        <div class="accidental" id="accidental1"></div>
+        <div class="accidental" id="accidental2"></div>
+        <div class="accidental" id="accidental3"></div>
+        <div class="accidental" id="accidental4"></div>
+        <div class="accidental" id="accidental5"></div>
+        <div class="accidental" id="accidental6"></div>
+        <div class="accidental" id="accidental7"></div>
+        <div class="accidental" id="accidental8"></div>
     </div>
     
     <div class="main-controls">
         <button id="randomButton" onclick="positionWholeNote()">สุ่มตัวโน้ต</button>
         <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
+        <button id="toggleAccidentalsButton" onclick="toggleAccidentalsMode()">สุ่มเครื่องหมาย</button>
         <button id="toggleNoteNamesButton" onclick="toggleNoteNames()">ซ่อนชื่อโน้ต</button>
     </div>
 
@@ -218,6 +241,9 @@
         let currentPositions = [-10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
         let selectedPositions = [];
         let showNoteNames = true;
+        // New state for accidental mode
+        let isAccidentalMode = false;
+        const ACCIDENTAL_SYMBOLS = ['♯', '♭'];
 
         const noteNames = {
             '-10': 'A', '0': 'G', '10': 'F', '20': 'E', 
@@ -225,7 +251,6 @@
             '70': 'G', '80': 'F', '90': 'E', '100': 'D', '110': 'C'
         };
         
-        // --- New function to arrange notes in C-Major scale order ---
         function arrangeNotesInOrder() {
             const scaleOrder = [110, 100, 90, 80, 70, 60, 50, 40]; // C, D, E, F, G, A, B, C
             const notes = document.getElementsByClassName('whole-note');
@@ -239,14 +264,12 @@
                     notes[i].style.left = (138 + i * 70) + 'px';
                     notes[i].style.display = 'block';
 
-                    // Update note name
                     const noteName = noteNames[noteTop.toString()];
                     noteNameElements[i].textContent = noteName;
                     noteNameElements[i].style.top = (noteTop + 35) + 'px';
                     noteNameElements[i].style.left = (138 + i * 70) + 'px';
                     noteNameElements[i].classList.toggle('hidden', !showNoteNames);
 
-                    // Update ledger line
                     if (noteTop === 110 || noteTop === -10) {
                         ledgerLines[i].style.top = (noteTop + 10) + 'px';
                         ledgerLines[i].style.left = (parseInt(notes[i].style.left) - 7) + 'px';
@@ -255,14 +278,14 @@
                         ledgerLines[i].style.display = 'none';
                     }
                 } else {
-                    // Hide extra notes if scale is shorter than 8
                     notes[i].style.display = 'none';
-                    noteNameElements[i].style.display = 'none';
+                    noteNameElements[i].classList.add('hidden');
                     ledgerLines[i].style.display = 'none';
                 }
+                // Update accidentals for the new note position
+                updateAccidentalForNote(i);
             }
         }
-
 
         function toggleNoteNames() {
             showNoteNames = !showNoteNames;
@@ -306,10 +329,7 @@
                 notes[i].style.top = noteTop + 'px';
                 notes[i].style.left = (138 + i * 70) + 'px';
                 notes[i].style.display = 'block';
-                // noteNameElements[i].style.display = 'block'; // <<< BUG FIX: Removed this line
 
-
-                // แสดงชื่อโน้ต
                 const noteName = noteNames[noteTop.toString()];
                 noteNameElements[i].textContent = noteName;
                 noteNameElements[i].style.top = (noteTop + 35) + 'px';
@@ -323,6 +343,58 @@
                 } else {
                     ledgerLines[i].style.display = 'none';
                 }
+                // Update accidentals for the new note position
+                updateAccidentalForNote(i);
+            }
+        }
+        
+        // --- New functions for handling accidentals ---
+
+        function toggleAccidentalsMode() {
+            isAccidentalMode = !isAccidentalMode;
+            const button = document.getElementById('toggleAccidentalsButton');
+            button.textContent = isAccidentalMode ? 'ปิดสุ่มเครื่องหมาย' : 'สุ่มเครื่องหมาย';
+            
+            // Apply changes to all currently visible notes
+            for (let i = 0; i < 8; i++) {
+                updateAccidentalForNote(i);
+            }
+        }
+
+        function updateAccidentalForNote(index) {
+            const notes = document.getElementsByClassName('whole-note');
+            const accidentals = document.getElementsByClassName('accidental');
+            const noteElement = notes[index];
+            const accElement = accidentals[index];
+
+            if (noteElement.style.display === 'none') {
+                accElement.style.display = 'none';
+                return;
+            }
+
+            if (isAccidentalMode) {
+                // 50% chance to show an accidental
+                if (Math.random() < 0.5) {
+                    const randomSymbol = ACCIDENTAL_SYMBOLS[Math.floor(Math.random() * ACCIDENTAL_SYMBOLS.length)];
+                    accElement.textContent = randomSymbol;
+
+                    // --- START: Separate vertical offsets for each symbol ---
+                    let verticalOffset = 0;
+                    if (randomSymbol === '♯') {
+                        verticalOffset = -12; // Adjusted for sharp
+                    } else if (randomSymbol === '♭') {
+                        verticalOffset = -24; // Adjusted for flat (moved up by 2px)
+                    }
+                    accElement.style.top = (parseInt(noteElement.style.top) + verticalOffset) + 'px';
+                    // --- END: Separate vertical offsets ---
+
+                    accElement.style.left = (parseInt(noteElement.style.left) - 25) + 'px';
+                    accElement.style.display = 'block';
+                } else {
+                    accElement.style.display = 'none';
+                }
+            } else {
+                accElement.style.display = 'none';
             }
         }
 

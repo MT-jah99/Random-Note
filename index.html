@@ -8,34 +8,65 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            padding: 1rem;
+        }
+
+        .game-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         .container {
             position: relative;
-            width: 80%;
-            height: 320px;
+            width: 100%;
             margin-top: 50px;
-            margin-left: auto;
-            margin-right: auto;
         }
+
+        .staff-lines {
+            position: absolute;
+            width: 100%;
+            height: 120px; /* Height to contain lines */
+            top: 0;
+        }
+
         .custom-hr {
             border: none;
             border-top: 2px solid #000;
             margin: 0;
             position: absolute;
-            width: calc(100% + 50px);
+            width: 100%;
         }
         .hr1 { top: 20px; }
         .hr2 { top: 40px; }
         .hr3 { top: 60px; }
         .hr4 { top: 80px; }
         .hr5 { top: 100px; }
-        .g-clef {
-            position: absolute;
-            top: -25px;
-            left: 10px;
-            width: 100px;
+
+        .staff-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            padding-left: 100px; /* Make space for the G-clef */
         }
+
+        .g-clef {
+            position: absolute; /* Take it out of the flex flow */
+            left: 0px; /* Moved 5px further to the left */
+            top: -40px; /* Adjust vertical position */
+            height: 225px; /* Keep it large */
+            width: auto;
+        }
+
+        .note-position {
+            position: relative;
+            flex-grow: 1;
+            height: 150px; /* Provides consistent height for positioning */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .whole-note {
             position: absolute;
             width: 35px;
@@ -47,58 +78,69 @@
             display: none;
         }
 
-        /* New style for accidentals */
         .accidental {
             position: absolute;
             font-size: 38px;
             font-weight: normal;
             display: none;
         }
+        
+        .note-name {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            width: 35px;
+            color: red;
+        }
+        .note-name.hidden {
+            display: none;
+        }
 
         /* === Styles for Dimensional Buttons === */
-        .main-controls {
-            text-align: center;
-            margin: 10px 0; /* Small spacing */
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .main-controls, .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
 
         #randomButton, #toggleNoteNamesButton, #arrangeNotesButton, #toggleAccidentalsButton, .metronome button {
             display: inline-block;
-            margin: 10px;
             padding: 15px 30px;
             font-size: 18px;
             font-weight: bold;
             color: white;
             border: none;
-            border-radius: 12px; /* More rounded */
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Softer, more pronounced shadow */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         }
 
         #randomButton:hover, #toggleNoteNamesButton:hover, #arrangeNotesButton:hover, #toggleAccidentalsButton:hover, .metronome button:hover {
-            transform: translateY(-3px); /* Lift button on hover */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25); /* Enhance shadow */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
         }
 
         #randomButton:active, #toggleNoteNamesButton:active, #arrangeNotesButton:active, #toggleAccidentalsButton:active, .metronome button:active {
-            transform: translateY(1px); /* "Press down" effect */
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Reduce shadow when active */
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
-        #randomButton {
-            background: linear-gradient(145deg, #2196F3, #007bff);
-        }
-        #toggleNoteNamesButton {
-            background: linear-gradient(145deg, #4CAF50, #28a745);
-        }
-        #arrangeNotesButton {
-            background: linear-gradient(145deg, #ff9800, #fb8c00);
-        }
-        /* New button style */
-        #toggleAccidentalsButton {
-            background: linear-gradient(145deg, #9C27B0, #8E24AA);
-        }
+        #randomButton { background: linear-gradient(145deg, #2196F3, #007bff); }
+        #toggleNoteNamesButton { background: linear-gradient(145deg, #4CAF50, #28a745); }
+        #arrangeNotesButton { background: linear-gradient(145deg, #ff9800, #fb8c00); }
+        #toggleAccidentalsButton { background: linear-gradient(145deg, #9C27B0, #8E24AA); }
         
         .metronome {
             text-align: center;
@@ -106,31 +148,17 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-
-        .metronome .controls {
-            margin-bottom: 20px;
-        }
-        
-        .metronome button {
-             background: linear-gradient(145deg, #f44336, #dc3545);
-        }
-
-        input[type="range"] {
             width: 100%;
+            max-width: 400px;
         }
 
-        .button-group {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
+        .metronome .controls { margin-bottom: 20px; }
+        .metronome button { background: linear-gradient(145deg, #f44336, #dc3545); }
+        input[type="range"] { width: 100%; }
 
         .button-group button {
-            margin: 0 8px;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 10px 15px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             background-color: #fff;
@@ -152,85 +180,62 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 2px 5px rgba(0, 0, 0, 0.1);
             transform: translateY(1px);
         }
-        .note-name {
-            position: absolute;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            width: 35px;
-            color: red;
-        }
-        .note-name.hidden {
-            display: none;
+
+        /* Media Queries for Mobile */
+        @media (max-width: 768px) {
+            .staff-content {
+                padding-left: 70px; /* Adjust space for smaller G-clef */
+            }
+            .g-clef {
+                height: 180px; 
+                left: -5px; /* Moved 5px further to the left */
+                top: -25px;
+            }
+            .whole-note { width: 28px; }
+            .ledger-line { width: 35px; }
+            .accidental { font-size: 30px; }
+            .button-group button { font-size: 12px; padding: 8px 10px; }
+            #randomButton, #toggleNoteNamesButton, #arrangeNotesButton, #toggleAccidentalsButton, .metronome button {
+                font-size: 16px;
+                padding: 12px 20px;
+            }
         }
     </style>
 </head>
 <body>
+<div class="game-wrapper">
     <div class="container">
-        <img src="https://i.ibb.co/qj4js0r/G-clef-svg.png" alt="G Clef" class="g-clef">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note" class="whole-note" id="wholeNote1">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 2" class="whole-note" id="wholeNote2">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 3" class="whole-note" id="wholeNote3">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 4" class="whole-note" id="wholeNote4">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 5" class="whole-note" id="wholeNote5">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 6" class="whole-note" id="wholeNote6">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 7" class="whole-note" id="wholeNote7">
-        <img src="https://i.ibb.co/J75kHPd/png-clipart-whole-note-musical-note-eighth-note-rest-quarter-note-musical-notes-logo-monochrome.png" alt="Whole Note 8" class="whole-note" id="wholeNote8">
-        
-        <hr class="custom-hr hr1">
-        <hr class="custom-hr hr2">
-        <hr class="custom-hr hr3">
-        <hr class="custom-hr hr4">
-        <hr class="custom-hr hr5">
-
-        <div class="ledger-line" id="ledgerLine1"></div>
-        <div class="ledger-line" id="ledgerLine2"></div>
-        <div class="ledger-line" id="ledgerLine3"></div>
-        <div class="ledger-line" id="ledgerLine4"></div>
-        <div class="ledger-line" id="ledgerLine5"></div>
-        <div class="ledger-line" id="ledgerLine6"></div>
-        <div class="ledger-line" id="ledgerLine7"></div>
-        <div class="ledger-line" id="ledgerLine8"></div>
-
-        <div class="note-name" id="noteName1"></div>
-        <div class="note-name" id="noteName2"></div>
-        <div class="note-name" id="noteName3"></div>
-        <div class="note-name" id="noteName4"></div>
-        <div class="note-name" id="noteName5"></div>
-        <div class="note-name" id="noteName6"></div>
-        <div class="note-name" id="noteName7"></div>
-        <div class="note-name" id="noteName8"></div>
-
-        <!-- New elements for accidentals -->
-        <div class="accidental" id="accidental1"></div>
-        <div class="accidental" id="accidental2"></div>
-        <div class="accidental" id="accidental3"></div>
-        <div class="accidental" id="accidental4"></div>
-        <div class="accidental" id="accidental5"></div>
-        <div class="accidental" id="accidental6"></div>
-        <div class="accidental" id="accidental7"></div>
-        <div class="accidental" id="accidental8"></div>
+        <div class="staff-lines">
+            <hr class="custom-hr hr1"><hr class="custom-hr hr2"><hr class="custom-hr hr3"><hr class="custom-hr hr4"><hr class="custom-hr hr5">
+        </div>
+        <div class="staff-content">
+            <img src="https://i.ibb.co/qj4js0r/G-clef-svg.png" alt="G Clef" class="g-clef">
+            <!-- Note positions will be generated here -->
+        </div>
     </div>
     
-    <div class="main-controls">
-        <button id="randomButton" onclick="positionWholeNote()">สุ่มตัวโน้ต</button>
-        <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
-        <button id="toggleAccidentalsButton" onclick="toggleAccidentalsMode()">สุ่มเครื่องหมาย</button>
-        <button id="toggleNoteNamesButton" onclick="cycleNoteNames()">ชื่อโน้ตแบบไทย</button>
-    </div>
-
-    <div class="button-group" id="button-group-container">
-        <!-- Buttons are now generated by JavaScript -->
-    </div>
-
-    <div class="metronome">
-        <h1>เมโทรนอม</h1>
-        <div class="controls">
-            <label for="tempo">ความเร็ว: <span id="tempo-value">60</span> BPM</label>
-            <input type="range" id="tempo" min="40" max="200" value="60">
+    <div class="controls-container">
+        <div class="main-controls">
+            <button id="randomButton" onclick="positionWholeNote()">สุ่มตัวโน้ต</button>
+            <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
+            <button id="toggleAccidentalsButton" onclick="toggleAccidentalsMode()">สุ่มเครื่องหมาย</button>
+            <button id="toggleNoteNamesButton" onclick="cycleNoteNames()">ชื่อโน้ตแบบไทย</button>
         </div>
-        <button id="start-stop">เริ่ม</button>
+
+        <div class="button-group" id="button-group-container">
+            <!-- Buttons are now generated by JavaScript -->
+        </div>
+
+        <div class="metronome">
+            <h1>เมโทรนอม</h1>
+            <div class="controls">
+                <label for="tempo">ความเร็ว: <span id="tempo-value">60</span> BPM</label>
+                <input type="range" id="tempo" min="40" max="200" value="60">
+            </div>
+            <button id="start-stop">เริ่ม</button>
+        </div>
     </div>
+</div>
 
     <script>
         let currentPositions = [-10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
@@ -269,29 +274,18 @@
         function arrangeNotesInOrder() {
             const scaleOrder = [110, 100, 90, 80, 70, 60, 50, 40];
             const notes = document.getElementsByClassName('whole-note');
-            const ledgerLines = document.getElementsByClassName('ledger-line');
-
+            
             for (let i = 0; i < notes.length; i++) {
                 if (i < scaleOrder.length) {
                     const noteTop = scaleOrder[i];
                     currentNoteTops[i] = noteTop;
                     notes[i].style.top = `${noteTop}px`;
-                    notes[i].style.left = `${138 + i * 70}px`;
-                    notes[i].style.display = 'block';
+                    notes[i].parentElement.style.display = 'flex';
                     updateNoteNameForNote(i);
-
-                    if (noteTop === 110 || noteTop === -10) {
-                        ledgerLines[i].style.top = `${noteTop + 10}px`;
-                        ledgerLines[i].style.left = `${parseInt(notes[i].style.left) - 7}px`;
-                        ledgerLines[i].style.display = 'block';
-                    } else {
-                        ledgerLines[i].style.display = 'none';
-                    }
+                    updateLedgerLineForNote(i);
                 } else {
                     currentNoteTops[i] = null;
-                    notes[i].style.display = 'none';
-                    document.getElementById(`noteName${i+1}`).classList.add('hidden');
-                    ledgerLines[i].style.display = 'none';
+                    notes[i].parentElement.style.display = 'none';
                 }
                 updateAccidentalForNote(i);
             }
@@ -310,7 +304,7 @@
                 button.textContent = 'ชื่อโน้ตแบบไทย';
             }
             refreshAllNoteNames();
-            updateButtonGroupLabels(); // Update button group labels
+            updateButtonGroupLabels();
         }
 
         function refreshAllNoteNames() {
@@ -320,7 +314,8 @@
         }
         
         function updateNoteNameForNote(index) {
-            const noteNameElement = document.getElementById(`noteName${index+1}`);
+            const notePosition = document.getElementById(`note-position-${index}`);
+            const noteNameElement = notePosition.querySelector('.note-name');
             const noteTop = currentNoteTops[index];
 
             if (noteTop === null || noteNameDisplayMode === 'hidden') {
@@ -332,7 +327,6 @@
             const noteInfo = noteData[noteTop.toString()];
             noteNameElement.textContent = noteNameDisplayMode === 'en' ? noteInfo.en : noteInfo.th;
             noteNameElement.style.top = `${noteTop + 35}px`;
-            noteNameElement.style.left = `${138 + index * 70}px`;
         }
 
         function togglePositions(button, positions) {
@@ -355,24 +349,27 @@
 
         function positionWholeNote() {
             const notes = document.getElementsByClassName('whole-note');
-            const ledgerLines = document.getElementsByClassName('ledger-line');
 
             for (let i = 0; i < notes.length; i++) {
                 const noteTop = getRandomPosition();
                 currentNoteTops[i] = noteTop;
                 notes[i].style.top = `${noteTop}px`;
-                notes[i].style.left = `${138 + i * 70}px`;
-                notes[i].style.display = 'block';
+                notes[i].parentElement.style.display = 'flex';
                 updateNoteNameForNote(i);
-
-                if (noteTop === 110 || noteTop === -10) {
-                    ledgerLines[i].style.top = `${noteTop + 10}px`;
-                    ledgerLines[i].style.left = `${parseInt(notes[i].style.left) - 7}px`;
-                    ledgerLines[i].style.display = 'block';
-                } else {
-                    ledgerLines[i].style.display = 'none';
-                }
+                updateLedgerLineForNote(i);
                 updateAccidentalForNote(i);
+            }
+        }
+
+        function updateLedgerLineForNote(index) {
+            const notePosition = document.getElementById(`note-position-${index}`);
+            const ledgerLine = notePosition.querySelector('.ledger-line');
+            const noteTop = currentNoteTops[index];
+            if (noteTop === 110 || noteTop === -10) {
+                ledgerLine.style.top = `${noteTop + 10}px`;
+                ledgerLine.style.display = 'block';
+            } else {
+                ledgerLine.style.display = 'none';
             }
         }
         
@@ -387,12 +384,11 @@
         }
 
         function updateAccidentalForNote(index) {
-            const notes = document.getElementsByClassName('whole-note');
-            const accidentals = document.getElementsByClassName('accidental');
-            const noteElement = notes[index];
-            const accElement = accidentals[index];
+            const notePosition = document.getElementById(`note-position-${index}`);
+            const accElement = notePosition.querySelector('.accidental');
+            const noteElement = notePosition.querySelector('.whole-note');
 
-            if (noteElement.style.display === 'none') {
+            if (notePosition.style.display === 'none') {
                 accElement.style.display = 'none';
                 return;
             }
@@ -402,7 +398,7 @@
                 accElement.textContent = randomSymbol;
                 let verticalOffset = (randomSymbol === '♯') ? -12 : -24;
                 accElement.style.top = `${parseInt(noteElement.style.top) + verticalOffset}px`;
-                accElement.style.left = `${parseInt(noteElement.style.left) - 25}px`;
+                accElement.style.left = `-25px`;
                 accElement.style.display = 'block';
             } else {
                 accElement.style.display = 'none';
@@ -427,8 +423,26 @@
                 button.textContent = (noteNameDisplayMode === 'th') ? data.th_short : data.en;
             });
         }
+        
+        function createNoteElements() {
+            const staffContent = document.querySelector('.staff-content');
+            for(let i = 0; i < 8; i++) {
+                const notePosition = document.createElement('div');
+                notePosition.className = 'note-position';
+                notePosition.id = `note-position-${i}`;
+                
+                notePosition.innerHTML = `
+                    <div class="accidental"></div>
+                    <img src="https://i.postimg.cc/sxQTb7PS/7.png" alt="Whole Note" class="whole-note">
+                    <div class="ledger-line"></div>
+                    <div class="note-name"></div>
+                `;
+                staffContent.appendChild(notePosition);
+            }
+        }
 
         window.onload = function() {
+            createNoteElements();
             createButtonGroupButtons();
             positionWholeNote();
             setupMetronome();

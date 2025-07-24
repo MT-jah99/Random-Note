@@ -193,7 +193,7 @@
     <div class="main-controls">
         <button id="randomButton" onclick="positionWholeNote()">Randomize Notes</button>
         <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
-        <button id="toggleNoteNamesButton" onclick="toggleNoteNames()">Hide Note Names</button>
+        <button id="toggleNoteNamesButton" onclick="toggleNoteNames()">ซ่อนชื่อโน้ต</button>
     </div>
 
     <div class="button-group">
@@ -225,7 +225,6 @@
             '70': 'G', '80': 'F', '90': 'E', '100': 'D', '110': 'C'
         };
         
-        // --- New function to arrange notes in C-Major scale order ---
         function arrangeNotesInOrder() {
             const scaleOrder = [110, 100, 90, 80, 70, 60, 50, 40]; // C, D, E, F, G, A, B, C
             const notes = document.getElementsByClassName('whole-note');
@@ -257,7 +256,7 @@
                 } else {
                     // Hide extra notes if scale is shorter than 8
                     notes[i].style.display = 'none';
-                    noteNameElements[i].style.display = 'none';
+                    noteNameElements[i].classList.add('hidden'); // FIX: Use class to hide
                     ledgerLines[i].style.display = 'none';
                 }
             }
@@ -273,7 +272,8 @@
                 element.classList.toggle('hidden');
             }
             
-            button.textContent = showNoteNames ? 'Hide Note Names' : 'Show Note Names';
+            // FIX: Update button text to Thai
+            button.textContent = showNoteNames ? 'ซ่อนชื่อโน้ต' : 'แสดงชื่อโน้ต';
         }
 
         function togglePositions(button, positions) {
@@ -306,8 +306,7 @@
                 notes[i].style.top = noteTop + 'px';
                 notes[i].style.left = (138 + i * 70) + 'px';
                 notes[i].style.display = 'block';
-                noteNameElements[i].style.display = 'block';
-
+                // noteNameElements[i].style.display = 'block'; // FIX: Removed this line
 
                 // แสดงชื่อโน้ต
                 const noteName = noteNames[noteTop.toString()];

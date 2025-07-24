@@ -216,7 +216,7 @@
         <button id="randomButton" onclick="positionWholeNote()">สุ่มตัวโน้ต</button>
         <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
         <button id="toggleAccidentalsButton" onclick="toggleAccidentalsMode()">สุ่มเครื่องหมาย</button>
-        <button id="toggleNoteNamesButton" onclick="toggleNoteNames()">ซ่อนชื่อโน้ต</button>
+        <button id="toggleNoteNamesButton" onclick="cycleNoteNames()">แสดงชื่อ (ไทย)</button>
     </div>
 
     <div class="button-group">
@@ -240,35 +240,32 @@
     <script>
         let currentPositions = [-10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
         let selectedPositions = [];
-        let showNoteNames = true;
-        // New state for accidental mode
+        let noteNameDisplayMode = 'en'; // 'en', 'th', 'hidden'
+        let currentNoteTops = new Array(8); // To store current note positions
+        
         let isAccidentalMode = false;
         const ACCIDENTAL_SYMBOLS = ['♯', '♭'];
 
-        const noteNames = {
-            '-10': 'A', '0': 'G', '10': 'F', '20': 'E', 
-            '30': 'D', '40': 'C', '50': 'B', '60': 'A', 
-            '70': 'G', '80': 'F', '90': 'E', '100': 'D', '110': 'C'
+        const noteData = {
+            '-10': { en: 'A', th: 'ลา' }, '0': { en: 'G', th: 'ซอล' }, '10': { en: 'F', th: 'ฟา' }, '20': { en: 'E', th: 'มี' }, 
+            '30': { en: 'D', th: 'เร' }, '40': { en: 'C', th: 'โด' }, '50': { en: 'B', th: 'ที' }, '60': { en: 'A', th: 'ลา' }, 
+            '70': { en: 'G', th: 'ซอล' }, '80': { en: 'F', th: 'ฟา' }, '90': { en: 'E', th: 'มี' }, '100': { en: 'D', th: 'เร' }, '110': { en: 'C', th: 'โด' }
         };
         
         function arrangeNotesInOrder() {
             const scaleOrder = [110, 100, 90, 80, 70, 60, 50, 40]; // C, D, E, F, G, A, B, C
             const notes = document.getElementsByClassName('whole-note');
             const ledgerLines = document.getElementsByClassName('ledger-line');
-            const noteNameElements = document.getElementsByClassName('note-name');
 
             for (let i = 0; i < notes.length; i++) {
                 if (i < scaleOrder.length) {
                     const noteTop = scaleOrder[i];
+                    currentNoteTops[i] = noteTop; // Store position
                     notes[i].style.top = noteTop + 'px';
                     notes[i].style.left = (138 + i * 70) + 'px';
                     notes[i].style.display = 'block';
 
-                    const noteName = noteNames[noteTop.toString()];
-                    noteNameElements[i].textContent = noteName;
-                    noteNameElements[i].style.top = (noteTop + 35) + 'px';
-                    noteNameElements[i].style.left = (138 + i * 70) + 'px';
-                    noteNameElements[i].classList.toggle('hidden', !showNoteNames);
+                    updateNoteNameForNote(i); // Update name display
 
                     if (noteTop === 110 || noteTop === -10) {
                         ledgerLines[i].style.top = (noteTop + 10) + 'px';
@@ -278,25 +275,57 @@
                         ledgerLines[i].style.display = 'none';
                     }
                 } else {
+                    currentNoteTops[i] = null; // Clear position
                     notes[i].style.display = 'none';
-                    noteNameElements[i].classList.add('hidden');
+                    document.getElementById(`noteName${i+1}`).classList.add('hidden');
                     ledgerLines[i].style.display = 'none';
                 }
-                // Update accidentals for the new note position
                 updateAccidentalForNote(i);
             }
         }
 
-        function toggleNoteNames() {
-            showNoteNames = !showNoteNames;
-            const noteNameElements = document.getElementsByClassName('note-name');
+        function cycleNoteNames() {
             const button = document.getElementById('toggleNoteNamesButton');
-            
-            for (let element of noteNameElements) {
-                element.classList.toggle('hidden');
+            if (noteNameDisplayMode === 'en') {
+                noteNameDisplayMode = 'th';
+                button.textContent = 'ซ่อนชื่อโน้ต';
+            } else if (noteNameDisplayMode === 'th') {
+                noteNameDisplayMode = 'hidden';
+                button.textContent = 'แสดงชื่อ (อังกฤษ)';
+            } else {
+                noteNameDisplayMode = 'en';
+                button.textContent = 'แสดงชื่อ (ไทย)';
             }
+            refreshAllNoteNames();
+        }
+
+        function refreshAllNoteNames() {
+            for (let i = 0; i < 8; i++) {
+                updateNoteNameForNote(i);
+            }
+        }
+        
+        function updateNoteNameForNote(index) {
+            const noteNameElement = document.getElementById(`noteName${index+1}`);
+            const noteTop = currentNoteTops[index];
+
+            if (noteTop === null || noteNameDisplayMode === 'hidden') {
+                noteNameElement.classList.add('hidden');
+                return;
+            }
+
+            noteNameElement.classList.remove('hidden');
+            const noteInfo = noteData[noteTop.toString()];
             
-            button.textContent = showNoteNames ? 'ซ่อนชื่อโน้ต' : 'แสดงชื่อโน้ต';
+            if (noteNameDisplayMode === 'en') {
+                noteNameElement.textContent = noteInfo.en;
+            } else { // 'th'
+                noteNameElement.textContent = noteInfo.th;
+            }
+
+            // --- BUG FIX: Added positioning logic back ---
+            noteNameElement.style.top = (noteTop + 35) + 'px';
+            noteNameElement.style.left = (138 + index * 70) + 'px';
         }
 
         function togglePositions(button, positions) {
@@ -322,19 +351,15 @@
         function positionWholeNote() {
             const notes = document.getElementsByClassName('whole-note');
             const ledgerLines = document.getElementsByClassName('ledger-line');
-            const noteNameElements = document.getElementsByClassName('note-name');
 
             for (let i = 0; i < notes.length; i++) {
                 const noteTop = getRandomPosition();
+                currentNoteTops[i] = noteTop; // Store position
                 notes[i].style.top = noteTop + 'px';
                 notes[i].style.left = (138 + i * 70) + 'px';
                 notes[i].style.display = 'block';
 
-                const noteName = noteNames[noteTop.toString()];
-                noteNameElements[i].textContent = noteName;
-                noteNameElements[i].style.top = (noteTop + 35) + 'px';
-                noteNameElements[i].style.left = (138 + i * 70) + 'px';
-                noteNameElements[i].classList.toggle('hidden', !showNoteNames);
+                updateNoteNameForNote(i); // Update name display
 
                 if (noteTop === 110 || noteTop === -10) {
                     ledgerLines[i].style.top = (noteTop + 10) + 'px';
@@ -343,19 +368,15 @@
                 } else {
                     ledgerLines[i].style.display = 'none';
                 }
-                // Update accidentals for the new note position
                 updateAccidentalForNote(i);
             }
         }
         
-        // --- New functions for handling accidentals ---
-
         function toggleAccidentalsMode() {
             isAccidentalMode = !isAccidentalMode;
             const button = document.getElementById('toggleAccidentalsButton');
             button.textContent = isAccidentalMode ? 'ปิดสุ่มเครื่องหมาย' : 'สุ่มเครื่องหมาย';
             
-            // Apply changes to all currently visible notes
             for (let i = 0; i < 8; i++) {
                 updateAccidentalForNote(i);
             }
@@ -373,21 +394,17 @@
             }
 
             if (isAccidentalMode) {
-                // 50% chance to show an accidental
                 if (Math.random() < 0.5) {
                     const randomSymbol = ACCIDENTAL_SYMBOLS[Math.floor(Math.random() * ACCIDENTAL_SYMBOLS.length)];
                     accElement.textContent = randomSymbol;
 
-                    // --- START: Separate vertical offsets for each symbol ---
                     let verticalOffset = 0;
                     if (randomSymbol === '♯') {
-                        verticalOffset = -12; // Adjusted for sharp
+                        verticalOffset = -12;
                     } else if (randomSymbol === '♭') {
-                        verticalOffset = -24; // Adjusted for flat (moved up by 2px)
+                        verticalOffset = -24;
                     }
                     accElement.style.top = (parseInt(noteElement.style.top) + verticalOffset) + 'px';
-                    // --- END: Separate vertical offsets ---
-
                     accElement.style.left = (parseInt(noteElement.style.left) - 25) + 'px';
                     accElement.style.display = 'block';
                 } else {

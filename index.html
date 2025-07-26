@@ -25,7 +25,7 @@
         .container {
             position: relative;
             width: 100%;
-            margin-top: 50px;
+            margin-top: 60px;
         }
 
         .staff-lines {
@@ -59,7 +59,7 @@
         .g-clef {
             position: absolute;
             left: 0px;
-            top: -40px;
+            top: -50px;
             height: 225px;
             width: auto;
         }
@@ -91,6 +91,9 @@
             font-size: 38px;
             font-weight: normal;
             display: none;
+            /* UPDATED: New positioning logic */
+            left: 50%;
+            transform: translateX(-45px);
         }
         
         .note-name {
@@ -237,7 +240,7 @@
 
         .key.black {
             width: 38px;
-            height: 70px; /* UPDATED */
+            height: 70px;
             background-color: #222;
             position: absolute;
             z-index: 1;
@@ -550,7 +553,7 @@
                 accElement.textContent = randomSymbol;
                 let verticalOffset = (randomSymbol === '♯') ? -12 : -24;
                 accElement.style.top = `${parseInt(noteElement.style.top) + verticalOffset}px`;
-                accElement.style.left = `-25px`;
+                // REMOVED: accElement.style.left is now controlled by CSS
                 accElement.style.display = 'block';
             } else {
                 accElement.style.display = 'none';

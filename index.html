@@ -91,7 +91,6 @@
             font-size: 38px;
             font-weight: normal;
             display: none;
-            /* UPDATED: New positioning logic */
             left: 50%;
             transform: translateX(-45px);
         }
@@ -221,6 +220,9 @@
             border: 1px solid #333;
             box-sizing: border-box;
             transition: background-color 0.1s ease, transform 0.05s ease;
+            position: relative; 
+            display: flex;
+            justify-content: center;
         }
 
         .key.active {
@@ -235,19 +237,38 @@
             border-bottom-left-radius: 5px;
             border-bottom-right-radius: 5px;
             border-top: 1px solid #eee;
+            align-items: flex-end;
         }
         .key.white.active { background-color: #e5e7eb; }
 
         .key.black {
             width: 38px;
-            height: 80px; /* UPDATED */
+            height: 80px;
             background-color: #222;
             position: absolute;
             z-index: 1;
             border-radius: 5px;
             box-shadow: inset 0 -4px 8px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.5);
+            align-items: center;
         }
         .key.black.active { background-color: #374151; }
+
+        .key-label {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .key.white .key-label {
+            color: #333;
+            padding-bottom: 8px;
+        }
+
+        .key.black .key-label {
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.2;
+            text-align: center;
+        }
 
         /* Positioning black keys */
         .key[data-note="Db4"] { left: 39px; }
@@ -259,6 +280,7 @@
         .key[data-note="Eb5"] { left: 439px; }
         .key[data-note="Gb5"] { left: 539px; }
         .key[data-note="Ab5"] { left: 589px; }
+        .key[data-note="Bb5"] { left: 639px; } /* NEW */
 
 
         /* === Media Queries for Mobile === */
@@ -308,6 +330,7 @@
             <div class="key white" data-note="F5"></div>
             <div class="key white" data-note="G5"></div>
             <div class="key white" data-note="A5"></div>
+            <div class="key white" data-note="B5"></div> <!-- NEW -->
             <!-- Black Keys -->
             <div class="key black" data-note="Db4"></div>
             <div class="key black" data-note="Eb4"></div>
@@ -318,6 +341,7 @@
             <div class="key black" data-note="Eb5"></div>
             <div class="key black" data-note="Gb5"></div>
             <div class="key black" data-note="Ab5"></div>
+            <div class="key black" data-note="Bb5"></div> <!-- NEW -->
         </div>
     </div>
 
@@ -382,15 +406,23 @@
 
         // === Web Audio API Setup ===
         let audioContext;
-        const currentWaveform = 'triangle'; // Set default sound to triangle
+        const currentWaveform = 'triangle';
         const noteFrequencies = {
             'C4': 261.63, 'Db4': 277.18, 'D4': 293.66, 'Eb4': 311.13, 'E4': 329.63,
             'F4': 349.23, 'Gb4': 369.99, 'G4': 392.00, 'Ab4': 415.30, 'A4': 440.00,
             'Bb4': 466.16, 'B4': 493.88, 
             'C5': 523.25, 'Db5': 554.37, 'D5': 587.33, 'Eb5': 622.25, 'E5': 659.25,
-            'F5': 698.46, 'Gb5': 739.99, 'G5': 783.99, 'Ab5': 830.61, 'A5': 880.00
+            'F5': 698.46, 'Gb5': 739.99, 'G5': 783.99, 'Ab5': 830.61, 'A5': 880.00,
+            'Bb5': 932.33, 'B5': 987.77
         };
         const activeOscillators = {};
+        
+        const enharmonicNames = {
+            'Db4': ['C♯', 'D♭'], 'Eb4': ['D♯', 'E♭'], 'Gb4': ['F♯', 'G♭'],
+            'Ab4': ['G♯', 'A♭'], 'Bb4': ['A♯', 'B♭'],
+            'Db5': ['C♯', 'D♭'], 'Eb5': ['D♯', 'E♭'], 'Gb5': ['F♯', 'G♭'],
+            'Ab5': ['G♯', 'A♭'], 'Bb5': ['A♯', 'B♭']
+        };
 
         function initAudio() {
             if (!audioContext) {
@@ -568,7 +600,6 @@
                 accElement.textContent = randomSymbol;
                 let verticalOffset = (randomSymbol === '♯') ? -12 : -24;
                 accElement.style.top = `${parseInt(noteElement.style.top) + verticalOffset}px`;
-                // REMOVED: accElement.style.left is now controlled by CSS
                 accElement.style.display = 'block';
             } else {
                 accElement.style.display = 'none';
@@ -689,6 +720,27 @@
             });
         }
 
+        // UPDATED: Function to add labels to piano keys
+        function addPianoKeyLabels() {
+            const keys = document.querySelectorAll('.piano .key');
+            keys.forEach(key => {
+                const note = key.dataset.note;
+                const label = document.createElement('span');
+                label.className = 'key-label';
+
+                if (key.classList.contains('black')) {
+                    const names = enharmonicNames[note];
+                    if (names) {
+                        label.innerHTML = `${names[0]}<br>${names[1]}`;
+                    }
+                } else {
+                    label.textContent = note.replace(/[0-9]/g, '');
+                }
+                
+                key.appendChild(label);
+            });
+        }
+
         // === Initial Load ===
         window.onload = function() {
             createNoteElements();
@@ -696,6 +748,7 @@
             positionWholeNote();
             setupMetronome();
             setupPiano();
+            addPianoKeyLabels();
         };
     </script>
 </body>

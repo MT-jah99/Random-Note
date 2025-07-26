@@ -255,6 +255,10 @@
         .key[data-note="Gb4"] { left: 189px; }
         .key[data-note="Ab4"] { left: 239px; }
         .key[data-note="Bb4"] { left: 289px; }
+        .key[data-note="Db5"] { left: 389px; }
+        .key[data-note="Eb5"] { left: 439px; }
+        .key[data-note="Gb5"] { left: 539px; }
+        .key[data-note="Ab5"] { left: 589px; } /* NEW */
 
 
         /* === Media Queries for Mobile === */
@@ -299,12 +303,21 @@
             <div class="key white" data-note="A4"></div>
             <div class="key white" data-note="B4"></div>
             <div class="key white" data-note="C5"></div>
+            <div class="key white" data-note="D5"></div>
+            <div class="key white" data-note="E5"></div>
+            <div class="key white" data-note="F5"></div>
+            <div class="key white" data-note="G5"></div>
+            <div class="key white" data-note="A5"></div> <!-- NEW -->
             <!-- Black Keys -->
             <div class="key black" data-note="Db4"></div>
             <div class="key black" data-note="Eb4"></div>
             <div class="key black" data-note="Gb4"></div>
             <div class="key black" data-note="Ab4"></div>
             <div class="key black" data-note="Bb4"></div>
+            <div class="key black" data-note="Db5"></div>
+            <div class="key black" data-note="Eb5"></div>
+            <div class="key black" data-note="Gb5"></div>
+            <div class="key black" data-note="Ab5"></div> <!-- NEW -->
         </div>
     </div>
 
@@ -373,7 +386,9 @@
         const noteFrequencies = {
             'C4': 261.63, 'Db4': 277.18, 'D4': 293.66, 'Eb4': 311.13, 'E4': 329.63,
             'F4': 349.23, 'Gb4': 369.99, 'G4': 392.00, 'Ab4': 415.30, 'A4': 440.00,
-            'Bb4': 466.16, 'B4': 493.88, 'C5': 523.25
+            'Bb4': 466.16, 'B4': 493.88, 
+            'C5': 523.25, 'Db5': 554.37, 'D5': 587.33, 'Eb5': 622.25, 'E5': 659.25,
+            'F5': 698.46, 'Gb5': 739.99, 'G5': 783.99, 'Ab5': 830.61, 'A5': 880.00
         };
         const activeOscillators = {};
 

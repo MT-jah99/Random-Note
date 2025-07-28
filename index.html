@@ -76,7 +76,14 @@
         .whole-note {
             position: absolute;
             width: 35px;
+            transition: filter 0.2s ease-in-out;
         }
+        
+        /* NEW: Style for the current note to be played */
+        .whole-note.current-note {
+            filter: drop-shadow(0 0 8px #007bff);
+        }
+
         .ledger-line {
             position: absolute;
             border-top: 2px solid #000;
@@ -159,6 +166,7 @@
         #toggleNoteNamesButton { background: linear-gradient(145deg, #4CAF50, #28a745); }
         #arrangeNotesButton { background: linear-gradient(145deg, #ff9800, #fb8c00); }
         #toggleAccidentalsButton { background: linear-gradient(145deg, #9C27B0, #8E24AA); }
+        #togglePianoButton { background: linear-gradient(145deg, #607D8B, #546E7A); } /* NEW */
         
         .metronome {
             text-align: center;
@@ -204,6 +212,15 @@
             margin-top: 40px;
             display: flex;
             justify-content: center;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .piano-container.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            height: 0;
+            margin-top: 0;
+            overflow: hidden;
         }
 
         .piano {
@@ -280,7 +297,7 @@
         .key[data-note="Eb5"] { left: 439px; }
         .key[data-note="Gb5"] { left: 539px; }
         .key[data-note="Ab5"] { left: 589px; }
-        .key[data-note="Bb5"] { left: 639px; } /* NEW */
+        .key[data-note="Bb5"] { left: 639px; }
 
 
         /* === Media Queries for Mobile === */
@@ -330,7 +347,7 @@
             <div class="key white" data-note="F5"></div>
             <div class="key white" data-note="G5"></div>
             <div class="key white" data-note="A5"></div>
-            <div class="key white" data-note="B5"></div> <!-- NEW -->
+            <div class="key white" data-note="B5"></div>
             <!-- Black Keys -->
             <div class="key black" data-note="Db4"></div>
             <div class="key black" data-note="Eb4"></div>
@@ -341,13 +358,14 @@
             <div class="key black" data-note="Eb5"></div>
             <div class="key black" data-note="Gb5"></div>
             <div class="key black" data-note="Ab5"></div>
-            <div class="key black" data-note="Bb5"></div> <!-- NEW -->
+            <div class="key black" data-note="Bb5"></div>
         </div>
     </div>
 
     <!-- Controls Section -->
     <div class="controls-container">
         <div class="main-controls">
+            <button id="togglePianoButton">ซ่อนเปียโน</button> <!-- NEW -->
             <button id="randomButton" onclick="positionWholeNote()">สุ่มตัวโน้ต</button>
             <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
             <button id="toggleAccidentalsButton" onclick="toggleAccidentalsMode()">สุ่มเครื่องหมาย</button>
@@ -372,27 +390,23 @@
 
     <script>
         // === Global Variables & Constants ===
+        let gameMode = 'playAlong'; // 'playAlong' or 'readPractice'
+        let playAlongSequence = [];
+        let currentStepInSequence = 0;
+
         let currentPositions = [-10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
         let selectedPositions = [];
-        let noteNameDisplayMode = 'en'; // 'en', 'th', 'hidden'
+        let noteNameDisplayMode = 'en';
         let currentNoteTops = new Array(8); 
         let isAccidentalMode = false;
         const ACCIDENTAL_SYMBOLS = ['♯', '♭'];
 
         const noteData = {
-            '-10': { en: 'A', th: 'ลา', th_short: 'ล' }, 
-            '0': { en: 'G', th: 'ซอล', th_short: 'ซ' }, 
-            '10': { en: 'F', th: 'ฟา', th_short: 'ฟ' }, 
-            '20': { en: 'E', th: 'มี', th_short: 'ม' }, 
-            '30': { en: 'D', th: 'เร', th_short: 'ร' }, 
-            '40': { en: 'C', th: 'โด', th_short: 'ด' }, 
-            '50': { en: 'B', th: 'ที', th_short: 'ท' }, 
-            '60': { en: 'A', th: 'ลา', th_short: 'ล' }, 
-            '70': { en: 'G', th: 'ซอล', th_short: 'ซ' }, 
-            '80': { en: 'F', th: 'ฟา', th_short: 'ฟ' }, 
-            '90': { en: 'E', th: 'มี', th_short: 'ม' }, 
-            '100': { en: 'D', th: 'เร', th_short: 'ร' }, 
-            '110': { en: 'C', th: 'โด', th_short: 'ด' }
+            '-10': { en: 'A', th: 'ลา', th_short: 'ล' }, '0': { en: 'G', th: 'ซอล', th_short: 'ซ' }, '10': { en: 'F', th: 'ฟา', th_short: 'ฟ' }, '20': { en: 'E', th: 'มี', th_short: 'ม' }, '30': { en: 'D', th: 'เร', th_short: 'ร' }, '40': { en: 'C', th: 'โด', th_short: 'ด' }, '50': { en: 'B', th: 'ที', th_short: 'ท' }, '60': { en: 'A', th: 'ลา', th_short: 'ล' }, '70': { en: 'G', th: 'ซอล', th_short: 'ซ' }, '80': { en: 'F', th: 'ฟา', th_short: 'ฟ' }, '90': { en: 'E', th: 'มี', th_short: 'ม' }, '100': { en: 'D', th: 'เร', th_short: 'ร' }, '110': { en: 'C', th: 'โด', th_short: 'ด' }
+        };
+
+        const positionToNoteMap = {
+            '110': 'C4', '100': 'D4', '90': 'E4', '80': 'F4', '70': 'G4', '60': 'A4', '50': 'B4', '40': 'C5', '30': 'D5', '20': 'E5', '10': 'F5', '0': 'G5', '-10': 'A5', '-20': 'B5'
         };
 
         const buttonGroupData = [
@@ -448,36 +462,26 @@
 
             oscillator.type = currentWaveform;
             oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-
             gainNode.gain.setValueAtTime(0.001, audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.02);
-
             oscillator.start(audioContext.currentTime);
-
             activeOscillators[note] = { oscillator, gainNode };
         }
 
         function stopNote(note) {
             if (!audioContext || !activeOscillators[note]) return;
-
             const activeNote = activeOscillators[note];
-
             activeNote.gainNode.gain.linearRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-
             activeNote.oscillator.stop(audioContext.currentTime + 0.1);
-
             delete activeOscillators[note];
         }
-
 
         // === Note Display Functions ===
         function arrangeNotesInOrder() {
             const scaleOrder = [110, 100, 90, 80, 70, 60, 50, 40];
             const notes = document.getElementsByClassName('whole-note');
-            
             for (let i = 0; i < notes.length; i++) {
                 if (i < scaleOrder.length) {
                     const noteTop = scaleOrder[i];
@@ -533,17 +537,16 @@
         }
         
         function togglePositions(button, positions) {
-            if (button.classList.contains('active')) {
-                button.classList.remove('active');
-                selectedPositions = [];
-                currentPositions = Object.keys(noteData).map(Number);
+            document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            selectedPositions = positions;
+            currentPositions = positions;
+            
+            if (gameMode === 'playAlong') {
+                startPlayAlongSequence(positions);
             } else {
-                document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                selectedPositions = positions;
-                currentPositions = positions;
+                positionWholeNote();
             }
-            positionWholeNote();
         }
 
         function getRandomPosition() {
@@ -691,7 +694,7 @@
             }
         }
 
-        // === Piano Functions ===
+        // === Piano & Game Mode Functions ===
         function setupPiano() {
             const keys = document.querySelectorAll('.piano .key');
             keys.forEach(key => {
@@ -702,6 +705,10 @@
                     initAudio();
                     playNote(note);
                     key.classList.add('active');
+                    
+                    if (gameMode === 'playAlong') {
+                        checkPlayerInput(note);
+                    }
                 };
 
                 const endEventHandler = () => {
@@ -709,18 +716,14 @@
                     key.classList.remove('active');
                 };
 
-                // Mouse events
                 key.addEventListener('mousedown', startEventHandler);
                 key.addEventListener('mouseup', endEventHandler);
                 key.addEventListener('mouseleave', endEventHandler);
-
-                // Touch events
                 key.addEventListener('touchstart', startEventHandler);
                 key.addEventListener('touchend', endEventHandler);
             });
         }
 
-        // UPDATED: Function to add labels to piano keys
         function addPianoKeyLabels() {
             const keys = document.querySelectorAll('.piano .key');
             keys.forEach(key => {
@@ -741,6 +744,79 @@
             });
         }
 
+        function togglePianoMode() {
+            const pianoContainer = document.querySelector('.piano-container');
+            const toggleButton = document.getElementById('togglePianoButton');
+            pianoContainer.classList.toggle('hidden');
+
+            if (pianoContainer.classList.contains('hidden')) {
+                gameMode = 'readPractice';
+                toggleButton.textContent = 'แสดงเปียโน';
+                clearPlayAlongState();
+            } else {
+                gameMode = 'playAlong';
+                toggleButton.textContent = 'ซ่อนเปียโน';
+            }
+        }
+
+        function startPlayAlongSequence(positions) {
+            playAlongSequence = [];
+            for (let i = 0; i < 8; i++) {
+                const randomPos = positions[Math.floor(Math.random() * positions.length)];
+                playAlongSequence.push(randomPos);
+            }
+            
+            currentStepInSequence = 0;
+            displaySequenceNotes();
+            highlightCurrentNote();
+        }
+
+        function displaySequenceNotes() {
+            const notes = document.getElementsByClassName('whole-note');
+            for (let i = 0; i < notes.length; i++) {
+                const noteTop = playAlongSequence[i];
+                currentNoteTops[i] = noteTop;
+                notes[i].style.top = `${noteTop}px`;
+                notes[i].parentElement.style.display = 'flex';
+                updateNoteNameForNote(i);
+                updateLedgerLineForNote(i);
+                updateAccidentalForNote(i); // This needs to be adapted for play-along
+            }
+        }
+
+        function highlightCurrentNote() {
+            document.querySelectorAll('.whole-note').forEach(note => note.classList.remove('current-note'));
+            if (currentStepInSequence < playAlongSequence.length) {
+                const noteElement = document.querySelectorAll('.whole-note')[currentStepInSequence];
+                noteElement.classList.add('current-note');
+            }
+        }
+
+        function checkPlayerInput(pressedNote) {
+            if (currentStepInSequence >= playAlongSequence.length) return;
+
+            const correctPosition = playAlongSequence[currentStepInSequence];
+            const correctNote = positionToNoteMap[correctPosition.toString()];
+            
+            // For now, we ignore accidentals in checking. This can be improved later.
+            if (pressedNote.slice(0, 1) === correctNote.slice(0, 1)) {
+                currentStepInSequence++;
+                if (currentStepInSequence >= playAlongSequence.length) {
+                    // Sequence complete, start a new one
+                    setTimeout(() => startPlayAlongSequence(currentPositions), 500);
+                } else {
+                    highlightCurrentNote();
+                }
+            }
+        }
+        
+        function clearPlayAlongState() {
+            playAlongSequence = [];
+            currentStepInSequence = 0;
+            document.querySelectorAll('.whole-note').forEach(note => note.classList.remove('current-note'));
+        }
+
+
         // === Initial Load ===
         window.onload = function() {
             createNoteElements();
@@ -749,6 +825,7 @@
             setupMetronome();
             setupPiano();
             addPianoKeyLabels();
+            document.getElementById('togglePianoButton').addEventListener('click', togglePianoMode);
         };
     </script>
 </body>

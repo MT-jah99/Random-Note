@@ -297,6 +297,19 @@
         .key[data-note="Gb5"] { left: 539px; }
         .key[data-note="Ab5"] { left: 589px; }
         .key[data-note="Bb5"] { left: 639px; }
+        
+        /* === Footer Styles === */
+        .site-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .site-footer p {
+            margin: 4px 0;
+        }
 
 
         /* === Media Queries for Mobile === */
@@ -386,6 +399,11 @@
     </div>
 
 </div>
+
+<footer class="site-footer">
+    <p id="copyright-notice"></p>
+    <p>โรงเรียนธัญรัตน์ จังหวัดปทุมธานี</p>
+</footer>
 
     <script>
         // === Global Variables & Constants ===
@@ -856,6 +874,14 @@
             currentStepInSequence = 0;
             document.querySelectorAll('.whole-note').forEach(note => note.classList.remove('current-note'));
         }
+        
+        function setCopyright() {
+            const year = new Date().getFullYear();
+            const copyrightElement = document.getElementById('copyright-notice');
+            if (copyrightElement) {
+                copyrightElement.textContent = `© ${year} ว่าที่ร้อยตรีมติพัฒน์ เชิดสุข. สงวนลิขสิทธิ์.`;
+            }
+        }
 
 
         // === Initial Load ===
@@ -867,6 +893,7 @@
             setupPiano();
             addPianoKeyLabels();
             document.getElementById('togglePianoButton').addEventListener('click', togglePianoMode);
+            setCopyright();
         };
     </script>
 </body>

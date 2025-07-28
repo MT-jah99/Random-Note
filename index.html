@@ -178,10 +178,11 @@
         }
 
         .metronome .controls { margin-bottom: 20px; }
+        .metronome .beat-selector { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
         .metronome button { background: linear-gradient(145deg, #f44336, #dc3545); }
         input[type="range"] { width: 100%; cursor: pointer; }
 
-        .button-group button {
+        .button-group button, .beat-selector button {
             padding: 10px 15px;
             font-size: 14px;
             font-weight: 500;
@@ -193,12 +194,12 @@
             transition: all 0.2s ease-in-out;
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
         }
-        .button-group button:hover {
+        .button-group button:hover, .beat-selector button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
             border-color: #adb5bd;
         }
-        .button-group button.active {
+        .button-group button.active, .beat-selector button.active {
             background: #007bff;
             color: white;
             border-color: #006fe6;
@@ -390,6 +391,12 @@
 
         <div class="metronome">
             <h1>เมโทรนอม</h1>
+            <div class="beat-selector">
+                <button class="beat-btn active" data-beat="click">Click</button>
+                <button class="beat-btn" data-beat="popRock">Pop/Rock</button>
+                <button class="beat-btn" data-beat="funk">Funk</button>
+                <button class="beat-btn" data-beat="disco">Disco</button>
+            </div>
             <div class="controls">
                 <label for="tempo">ความเร็ว: <span id="tempo-value">60</span> BPM</label>
                 <input type="range" id="tempo" min="40" max="200" value="60">
@@ -686,17 +693,146 @@
         }
 
         // === Metronome Functions ===
+        let metronomeMode = 'click';
+        let beatCount = 0;
+        let metronomeIntervalId;
+
+        const drumPatterns = {
+            popRock: [
+                { kick: true, hihat: true }, { hihat: true }, { snare: true, hihat: true }, { hihat: true },
+                { kick: true, hihat: true }, { hihat: true }, { snare: true, hihat: true }, { hihat: true }
+            ],
+            funk: [
+                { kick: true, hihat: true }, { hihat: true }, { snare: true, hihat: true }, { kick: true, hihat: true },
+                { kick: true, hihat: true }, { hihat: true }, { snare: true, hihat: true }, { hihat: true }
+            ],
+            disco: [
+                { kick: true, hihat: true }, { hihat: true }, { kick: true, hihat: true }, { hihat: true },
+                { kick: true, hihat: true }, { hihat: true }, { kick: true, hihat: true }, { hihat: true }
+            ]
+        };
+
+        // UPDATED: 808 Style Drum Synthesis
+        function playKick() {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(120, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+            gain.gain.setValueAtTime(1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.8);
+        }
+
+        function playSnare() {
+            // Tone part
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(220, audioContext.currentTime);
+            gain.gain.setValueAtTime(1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.1);
+
+            // Noise part
+            const noise = audioContext.createBufferSource();
+            const bufferSize = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, bufferSize, bufferSize);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            noise.buffer = buffer;
+            const noiseFilter = audioContext.createBiquadFilter();
+            noiseFilter.type = 'highpass';
+            noiseFilter.frequency.value = 1500;
+            noise.connect(noiseFilter);
+            const noiseEnvelope = audioContext.createGain();
+            noiseFilter.connect(noiseEnvelope);
+            noiseEnvelope.connect(audioContext.destination);
+            noiseEnvelope.gain.setValueAtTime(0.5, audioContext.currentTime);
+            noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            noise.start(audioContext.currentTime);
+            noise.stop(audioContext.currentTime + 0.15);
+        }
+
+        function playHiHat() {
+            const noise = audioContext.createBufferSource();
+            const bufferSize = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, bufferSize, bufferSize);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            noise.buffer = buffer;
+            const bandpass = audioContext.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.value = 12000;
+            const highpass = audioContext.createBiquadFilter();
+            highpass.type = "highpass";
+            highpass.frequency.value = 8000;
+            noise.connect(bandpass);
+            bandpass.connect(highpass);
+            const noiseEnvelope = audioContext.createGain();
+            highpass.connect(noiseEnvelope);
+            noiseEnvelope.connect(audioContext.destination);
+            noiseEnvelope.gain.setValueAtTime(1, audioContext.currentTime);
+            noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.03); // Very short
+            noise.start(audioContext.currentTime);
+            noise.stop(audioContext.currentTime + 0.03);
+        }
+
+        function playClick() {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(beatCount === 0 ? 1000 : 800, audioContext.currentTime);
+            gain.gain.setValueAtTime(1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.05);
+        }
+
+        function playMetronomeBeat() {
+            if (metronomeMode === 'click') {
+                playClick();
+                beatCount = (beatCount + 1) % 4;
+            } else {
+                const pattern = drumPatterns[metronomeMode];
+                const step = pattern[beatCount];
+                if (step.kick) playKick();
+                if (step.snare) playSnare();
+                if (step.hihat) playHiHat();
+                beatCount = (beatCount + 1) % pattern.length;
+            }
+        }
+
         function setupMetronome() {
             const tempoInput = document.getElementById('tempo');
             const tempoValue = document.getElementById('tempo-value');
             const startStopButton = document.getElementById('start-stop');
+            const beatButtons = document.querySelectorAll('.beat-btn');
             let isRunning = false;
-            let intervalId;
+
+            function startMetronome() {
+                const tempo = 60000 / tempoInput.value;
+                const subdivision = (metronomeMode === 'click') ? 1 : 2;
+                beatCount = 0;
+                metronomeIntervalId = setInterval(playMetronomeBeat, tempo / subdivision);
+            }
 
             tempoInput.addEventListener('input', function() {
                 tempoValue.textContent = this.value;
                 if (isRunning) {
-                    clearInterval(intervalId);
+                    clearInterval(metronomeIntervalId);
                     startMetronome();
                 }
             });
@@ -708,30 +844,24 @@
                     startMetronome();
                     this.textContent = 'หยุด';
                 } else {
-                    clearInterval(intervalId);
+                    clearInterval(metronomeIntervalId);
                     this.textContent = 'เริ่ม';
                 }
             });
-
-            function startMetronome() {
-                const tempo = 60000 / tempoInput.value;
-                intervalId = setInterval(playClick, tempo);
-            }
-
-            function playClick() {
-                if (!audioContext) return;
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(1000, audioContext.currentTime);
-                gain.gain.setValueAtTime(1, audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.start(audioContext.currentTime);
-                osc.stop(audioContext.currentTime + 0.05);
-            }
+            
+            beatButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    beatButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    metronomeMode = button.dataset.beat;
+                    if (isRunning) {
+                        clearInterval(metronomeIntervalId);
+                        startMetronome();
+                    }
+                });
+            });
         }
+
 
         // === Piano & Game Mode Functions ===
         function setupPiano() {

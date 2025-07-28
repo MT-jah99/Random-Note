@@ -79,7 +79,6 @@
             transition: filter 0.2s ease-in-out;
         }
         
-        /* NEW: Style for the current note to be played */
         .whole-note.current-note {
             filter: drop-shadow(0 0 8px #007bff);
         }
@@ -166,7 +165,7 @@
         #toggleNoteNamesButton { background: linear-gradient(145deg, #4CAF50, #28a745); }
         #arrangeNotesButton { background: linear-gradient(145deg, #ff9800, #fb8c00); }
         #toggleAccidentalsButton { background: linear-gradient(145deg, #9C27B0, #8E24AA); }
-        #togglePianoButton { background: linear-gradient(145deg, #607D8B, #546E7A); } /* NEW */
+        #togglePianoButton { background: linear-gradient(145deg, #607D8B, #546E7A); }
         
         .metronome {
             text-align: center;
@@ -365,7 +364,7 @@
     <!-- Controls Section -->
     <div class="controls-container">
         <div class="main-controls">
-            <button id="togglePianoButton">ซ่อนเปียโน</button> <!-- NEW -->
+            <button id="togglePianoButton">ซ่อนเปียโน</button>
             <button id="randomButton" onclick="positionWholeNote()">สุ่มตัวโน้ต</button>
             <button id="arrangeNotesButton" onclick="arrangeNotesInOrder()">เรียงลำดับโน้ต</button>
             <button id="toggleAccidentalsButton" onclick="toggleAccidentalsMode()">สุ่มเครื่องหมาย</button>
@@ -390,7 +389,7 @@
 
     <script>
         // === Global Variables & Constants ===
-        let gameMode = 'playAlong'; // 'playAlong' or 'readPractice'
+        let gameMode = 'playAlong';
         let playAlongSequence = [];
         let currentStepInSequence = 0;
 
@@ -408,6 +407,8 @@
         const positionToNoteMap = {
             '110': 'C4', '100': 'D4', '90': 'E4', '80': 'F4', '70': 'G4', '60': 'A4', '50': 'B4', '40': 'C5', '30': 'D5', '20': 'E5', '10': 'F5', '0': 'G5', '-10': 'A5', '-20': 'B5'
         };
+        
+        const chromaticScale = [ 'C4', 'Db4', 'D4', 'Eb4', 'E4', 'F4', 'Gb4', 'G4', 'Ab4', 'A4', 'Bb4', 'B4', 'C5', 'Db5', 'D5', 'Eb5', 'E5', 'F5', 'Gb5', 'G5', 'Ab5', 'A5', 'Bb5', 'B5' ];
 
         const buttonGroupData = [
             { en: 'E/G', th: 'มี/ซอล', th_short: 'ม/ซ', positions: [90, 70] },
@@ -480,6 +481,7 @@
 
         // === Note Display Functions ===
         function arrangeNotesInOrder() {
+            clearPlayAlongState();
             const scaleOrder = [110, 100, 90, 80, 70, 60, 50, 40];
             const notes = document.getElementsByClassName('whole-note');
             for (let i = 0; i < notes.length; i++) {
@@ -490,11 +492,11 @@
                     notes[i].parentElement.style.display = 'flex';
                     updateNoteNameForNote(i);
                     updateLedgerLineForNote(i);
+                    updateAccidentalForNote(i, null); // Display as natural
                 } else {
                     currentNoteTops[i] = null;
                     notes[i].parentElement.style.display = 'none';
                 }
-                updateAccidentalForNote(i);
             }
         }
 
@@ -554,6 +556,7 @@
         }
 
         function positionWholeNote() {
+            clearPlayAlongState();
             const notes = document.getElementsByClassName('whole-note');
             for (let i = 0; i < notes.length; i++) {
                 const noteTop = getRandomPosition();
@@ -583,25 +586,43 @@
             const button = document.getElementById('toggleAccidentalsButton');
             button.textContent = isAccidentalMode ? 'ปิดสุ่มเครื่องหมาย' : 'สุ่มเครื่องหมาย';
             
-            for (let i = 0; i < 8; i++) {
-                updateAccidentalForNote(i);
+            if (gameMode === 'playAlong' && currentPositions.length > 0) {
+                startPlayAlongSequence(currentPositions);
+            } else if (gameMode === 'readPractice') {
+                 positionWholeNote();
             }
         }
 
-        function updateAccidentalForNote(index) {
+        function updateAccidentalForNote(index, forcedAccidental = 'random') {
             const notePosition = document.getElementById(`note-position-${index}`);
             const accElement = notePosition.querySelector('.accidental');
             const noteElement = notePosition.querySelector('.whole-note');
+            const noteTop = currentNoteTops[index];
 
-            if (notePosition.style.display === 'none') {
+            if (notePosition.style.display === 'none' || noteTop === null) {
                 accElement.style.display = 'none';
                 return;
             }
 
-            if (isAccidentalMode && Math.random() < 0.5) {
+            let symbolToDisplay = null;
+            if (forcedAccidental !== 'random') {
+                symbolToDisplay = forcedAccidental;
+            } else if (isAccidentalMode && Math.random() < 0.5) {
+                const noteName = noteData[noteTop.toString()].en;
                 const randomSymbol = ACCIDENTAL_SYMBOLS[Math.floor(Math.random() * ACCIDENTAL_SYMBOLS.length)];
-                accElement.textContent = randomSymbol;
-                let verticalOffset = (randomSymbol === '♯') ? -12 : -24;
+
+                if (randomSymbol === '♯' && (noteName === 'E' || noteName === 'B')) {
+                    symbolToDisplay = null;
+                } else if (randomSymbol === '♭' && (noteName === 'F' || noteName === 'C')) {
+                    symbolToDisplay = null;
+                } else {
+                    symbolToDisplay = randomSymbol;
+                }
+            }
+
+            if (symbolToDisplay) {
+                accElement.textContent = symbolToDisplay;
+                let verticalOffset = (symbolToDisplay === '♯') ? -12 : -24;
                 accElement.style.top = `${parseInt(noteElement.style.top) + verticalOffset}px`;
                 accElement.style.display = 'block';
             } else {
@@ -763,7 +784,29 @@
             playAlongSequence = [];
             for (let i = 0; i < 8; i++) {
                 const randomPos = positions[Math.floor(Math.random() * positions.length)];
-                playAlongSequence.push(randomPos);
+                const noteName = noteData[randomPos.toString()].en;
+                let accidental = null;
+                let targetKey = positionToNoteMap[randomPos.toString()];
+
+                if (isAccidentalMode && Math.random() < 0.5) {
+                    const randomSymbol = ACCIDENTAL_SYMBOLS[Math.floor(Math.random() * ACCIDENTAL_SYMBOLS.length)];
+                    if (randomSymbol === '♯' && noteName !== 'E' && noteName !== 'B') {
+                        accidental = '♯';
+                    } else if (randomSymbol === '♭' && noteName !== 'F' && noteName !== 'C') {
+                        accidental = '♭';
+                    }
+                }
+                
+                if (accidental) {
+                    const naturalNoteIndex = chromaticScale.indexOf(targetKey);
+                    if (accidental === '♯' && naturalNoteIndex + 1 < chromaticScale.length) {
+                        targetKey = chromaticScale[naturalNoteIndex + 1];
+                    } else if (accidental === '♭' && naturalNoteIndex - 1 >= 0) {
+                        targetKey = chromaticScale[naturalNoteIndex - 1];
+                    }
+                }
+                
+                playAlongSequence.push({ position: randomPos, accidental: accidental, targetKey: targetKey });
             }
             
             currentStepInSequence = 0;
@@ -774,13 +817,14 @@
         function displaySequenceNotes() {
             const notes = document.getElementsByClassName('whole-note');
             for (let i = 0; i < notes.length; i++) {
-                const noteTop = playAlongSequence[i];
+                const sequenceItem = playAlongSequence[i];
+                const noteTop = sequenceItem.position;
                 currentNoteTops[i] = noteTop;
                 notes[i].style.top = `${noteTop}px`;
                 notes[i].parentElement.style.display = 'flex';
                 updateNoteNameForNote(i);
                 updateLedgerLineForNote(i);
-                updateAccidentalForNote(i); // This needs to be adapted for play-along
+                updateAccidentalForNote(i, sequenceItem.accidental);
             }
         }
 
@@ -795,14 +839,11 @@
         function checkPlayerInput(pressedNote) {
             if (currentStepInSequence >= playAlongSequence.length) return;
 
-            const correctPosition = playAlongSequence[currentStepInSequence];
-            const correctNote = positionToNoteMap[correctPosition.toString()];
+            const correctNote = playAlongSequence[currentStepInSequence].targetKey;
             
-            // For now, we ignore accidentals in checking. This can be improved later.
-            if (pressedNote.slice(0, 1) === correctNote.slice(0, 1)) {
+            if (pressedNote === correctNote) {
                 currentStepInSequence++;
                 if (currentStepInSequence >= playAlongSequence.length) {
-                    // Sequence complete, start a new one
                     setTimeout(() => startPlayAlongSequence(currentPositions), 500);
                 } else {
                     highlightCurrentNote();

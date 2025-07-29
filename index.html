@@ -106,7 +106,7 @@
             font-size: 14px;
             font-weight: bold;
             text-align: center;
-            width: 35px;
+            width: 40px; /* Increased width for Thai accidentals */
             color: #d9534f;
         }
         .note-name.hidden {
@@ -463,6 +463,11 @@
             'Db5': ['C♯', 'D♭'], 'Eb5': ['D♯', 'E♭'], 'Gb5': ['F♯', 'G♭'],
             'Ab5': ['G♯', 'A♭'], 'Bb5': ['A♯', 'B♭']
         };
+        
+        const pianoKeyThaiNames = {
+            'C4': 'ด', 'Db4': ['ด♯', 'ร♭'], 'D4': 'ร', 'Eb4': ['ร♯', 'ม♭'], 'E4': 'ม', 'F4': 'ฟ', 'Gb4': ['ฟ♯', 'ซ♭'], 'G4': 'ซ', 'Ab4': ['ซ♯', 'ล♭'], 'A4': 'ล', 'Bb4': ['ล♯', 'ท♭'], 'B4': 'ท',
+            'C5': 'ด', 'Db5': ['ด♯', 'ร♭'], 'D5': 'ร', 'Eb5': ['ร♯', 'ม♭'], 'E5': 'ม', 'F5': 'ฟ', 'Gb5': ['ฟ♯', 'ซ♭'], 'G5': 'ซ', 'Ab5': ['ซ♯', 'ล♭'], 'A5': 'ล', 'Bb5': ['ล♯', 'ท♭'], 'B5': 'ท'
+        };
 
         function initAudio() {
             if (!audioContext) {
@@ -538,6 +543,7 @@
                 button.textContent = 'ชื่อโน้ตแบบไทย';
             }
             refreshAllNoteNames();
+            updatePianoKeyLabels(); // UPDATED
             updateButtonGroupLabels();
         }
 
@@ -550,6 +556,7 @@
         function updateNoteNameForNote(index) {
             const notePosition = document.getElementById(`note-position-${index}`);
             const noteNameElement = notePosition.querySelector('.note-name');
+            const accElement = notePosition.querySelector('.accidental');
             const noteTop = currentNoteTops[index];
 
             if (noteTop === null || noteNameDisplayMode === 'hidden') {
@@ -559,7 +566,16 @@
 
             noteNameElement.classList.remove('hidden');
             const noteInfo = noteData[noteTop.toString()];
-            noteNameElement.textContent = noteNameDisplayMode === 'en' ? noteInfo.en : noteInfo.th;
+            let text = '';
+            if (noteNameDisplayMode === 'en') {
+                text = noteInfo.en;
+            } else { // 'th' mode
+                text = noteInfo.th;
+                if (accElement.style.display !== 'none') {
+                    text += accElement.textContent;
+                }
+            }
+            noteNameElement.textContent = text;
             noteNameElement.style.top = `${noteTop + 35}px`;
         }
         
@@ -588,9 +604,9 @@
                 currentNoteTops[i] = noteTop;
                 notes[i].style.top = `${noteTop}px`;
                 notes[i].parentElement.style.display = 'flex';
+                updateAccidentalForNote(i); // Must be called before updating name
                 updateNoteNameForNote(i);
                 updateLedgerLineForNote(i);
-                updateAccidentalForNote(i);
             }
         }
 
@@ -712,7 +728,6 @@
             ]
         };
 
-        // UPDATED: 808 Style Drum Synthesis
         function playKick() {
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
@@ -728,7 +743,6 @@
         }
 
         function playSnare() {
-            // Tone part
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
             osc.type = 'triangle';
@@ -739,8 +753,6 @@
             gain.connect(audioContext.destination);
             osc.start(audioContext.currentTime);
             osc.stop(audioContext.currentTime + 0.1);
-
-            // Noise part
             const noise = audioContext.createBufferSource();
             const bufferSize = audioContext.sampleRate;
             const buffer = audioContext.createBuffer(1, bufferSize, bufferSize);
@@ -783,7 +795,7 @@
             highpass.connect(noiseEnvelope);
             noiseEnvelope.connect(audioContext.destination);
             noiseEnvelope.gain.setValueAtTime(1, audioContext.currentTime);
-            noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.03); // Very short
+            noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.03);
             noise.start(audioContext.currentTime);
             noise.stop(audioContext.currentTime + 0.03);
         }
@@ -893,23 +905,35 @@
             });
         }
 
-        function addPianoKeyLabels() {
+        function updatePianoKeyLabels() {
             const keys = document.querySelectorAll('.piano .key');
             keys.forEach(key => {
                 const note = key.dataset.note;
-                const label = document.createElement('span');
-                label.className = 'key-label';
+                const label = key.querySelector('.key-label');
+                if (!label) return;
 
-                if (key.classList.contains('black')) {
-                    const names = enharmonicNames[note];
-                    if (names) {
-                        label.innerHTML = `${names[0]}<br>${names[1]}`;
-                    }
-                } else {
-                    label.textContent = note.replace(/[0-9]/g, '');
+                if (noteNameDisplayMode === 'hidden') {
+                    label.innerHTML = '';
+                    return;
                 }
-                
-                key.appendChild(label);
+
+                if (noteNameDisplayMode === 'th') {
+                    const thaiName = pianoKeyThaiNames[note];
+                    if (Array.isArray(thaiName)) {
+                        label.innerHTML = `${thaiName[0]}<br>${thaiName[1]}`;
+                    } else {
+                        label.textContent = thaiName;
+                    }
+                } else { // 'en' mode
+                    if (key.classList.contains('black')) {
+                        const names = enharmonicNames[note];
+                        if (names) {
+                            label.innerHTML = `${names[0]}<br>${names[1]}`;
+                        }
+                    } else {
+                        label.textContent = note.replace(/[0-9]/g, '');
+                    }
+                }
             });
         }
 
@@ -970,9 +994,9 @@
                 currentNoteTops[i] = noteTop;
                 notes[i].style.top = `${noteTop}px`;
                 notes[i].parentElement.style.display = 'flex';
+                updateAccidentalForNote(i, sequenceItem.accidental);
                 updateNoteNameForNote(i);
                 updateLedgerLineForNote(i);
-                updateAccidentalForNote(i, sequenceItem.accidental);
             }
         }
 
@@ -1011,6 +1035,16 @@
             if (copyrightElement) {
                 copyrightElement.textContent = `© ${year} ว่าที่ร้อยตรีมติพัฒน์ เชิดสุข. สงวนลิขสิทธิ์.`;
             }
+        }
+
+        function addPianoKeyLabels() {
+            const keys = document.querySelectorAll('.piano .key');
+            keys.forEach(key => {
+                const label = document.createElement('span');
+                label.className = 'key-label';
+                key.appendChild(label);
+            });
+            updatePianoKeyLabels(); // Initial call
         }
 
 

@@ -489,6 +489,42 @@
             }
         }
 
+        /* === Landscape Warning Overlay (แจ้งเตือนหมุนจอ) === */
+        .landscape-warning {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: var(--radius-lg);
+            flex-direction: column;
+        }
+        .landscape-warning p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+        .tilt-icon {
+            font-size: 48px;
+            display: inline-block;
+            margin-bottom: 10px;
+            animation: tilt-phone 2s infinite ease-in-out;
+        }
+        @keyframes tilt-phone {
+            0%, 10% { transform: rotate(0deg); }
+            40%, 60% { transform: rotate(-90deg); }
+            90%, 100% { transform: rotate(0deg); }
+        }
+
         /* === Media Queries === */
         @media (max-width: 768px) {
             .card { padding: 15px; }
@@ -502,6 +538,13 @@
             .note-name { font-size: 12px; width: 35px; }
         }
         
+        /* สั่งทำงานเฉพาะมือถือแนวตั้ง (Portrait Mode) */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .landscape-warning { display: flex; }
+            /* ซ่อนตัวโน้ตที่ตำแหน่งเพี้ยนเพื่อความสวยงาม (แต่ยังมองเห็นเส้นบรรทัดจางๆ) */
+            .staff-content { opacity: 0; pointer-events: none; } 
+        }
+
         @media (max-width: 500px) {
              .piano { transform: scale(0.48); margin-bottom: -60px;}
         }
@@ -520,6 +563,12 @@
             <!-- Image G-Clef -->
             <img src="https://i.ibb.co/qj4js0r/G-clef-svg.png" alt="G Clef" class="g-clef">
             <!-- Note positions will be generated here by JS -->
+        </div>
+        
+        <!-- Landscape Warning Overlay -->
+        <div class="landscape-warning">
+            <div class="tilt-icon">📱</div>
+            <p>กรุณาหมุนโทรศัพท์เป็นแนวนอน<br>เพื่อฝึกอ่านโน้ต</p>
         </div>
     </div>
     

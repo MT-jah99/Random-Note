@@ -201,6 +201,7 @@
         /* === Group Selection Buttons === */
         .group-selector-card {
             padding: 20px;
+            transform: translateX(24px); /* ปรับสมดุลให้ตรงกับบรรทัด 5 เส้น */
         }
 
         .control-group-title {
@@ -364,10 +365,11 @@
             display: flex;
             justify-content: center;
             transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateX(36px); /* ปรับสมดุลให้ตรงกับบรรทัด 5 เส้น */
         }
         .piano-container.hidden {
             opacity: 0;
-            transform: scale(0.95) translateY(-20px);
+            transform: translateX(36px) scale(0.95) translateY(-20px); /* รักษาระยะ X ไว้ตอนซ่อนเปียโน */
             pointer-events: none;
             height: 0;
             margin: 0;
@@ -468,6 +470,7 @@
             color: var(--text-muted);
             font-size: 14px;
             border-radius: var(--radius-lg);
+            transform: translateX(22px); /* ปรับสมดุลตามที่คุณครูกำหนด */
         }
         .site-footer p { margin: 4px 0; }
 
@@ -479,7 +482,7 @@
         }
         @media (min-width: 900px) {
             .layout-grid {
-                grid-template-columns: 1fr; /* เปลี่ยนเป็น 1 คอลัมน์เพราะย้ายเมโทรนอมออกไปแล้ว */
+                grid-template-columns: 1fr; 
             }
             .full-width {
                 grid-column: 1 / -1;
@@ -520,7 +523,7 @@
         </div>
     </div>
     
-    <!-- Area 2: Piano (ย้ายขึ้นมาอยู่ใต้บรรทัด 5 เส้น) -->
+    <!-- Area 2: Piano -->
     <div class="piano-container full-width">
         <div class="piano">
             <!-- White Keys -->
@@ -557,7 +560,7 @@
 
 </div>
 
-<!-- Metronome Modal (ย้ายออกมาเป็น Popup) -->
+<!-- Metronome Modal (Popup) -->
 <div id="metronomeModal" class="modal-overlay">
     <div class="card metronome-card modal-content">
         <button id="closeMetronomeBtn" class="close-btn">&times;</button>
@@ -578,7 +581,6 @@
 
     <script>
         // === Global Variables & Constants ===
-        // (ส่วนโค้ดการทำงานหลักยังคงเหมือนเดิมทั้งหมด ไม่มีการตัดทอน)
         let gameMode = 'playAlong';
         let playAlongSequence = [];
         let currentStepInSequence = 0;
@@ -1241,7 +1243,7 @@
             setupMetronome();
             setupPiano();
             addPianoKeyLabels();
-            setupModals(); // เริ่มใช้งานระบบ Popup
+            setupModals();
             document.getElementById('togglePianoButton').addEventListener('click', togglePianoMode);
             setCopyright();
         };

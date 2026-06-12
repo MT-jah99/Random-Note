@@ -489,7 +489,7 @@
             }
         }
 
-        /* === Media Queries (ปรับความยืดหยุ่นสำหรับมือถือ) === */
+        /* === Media Queries === */
         @media (max-width: 768px) {
             .card { padding: 15px; }
             .staff-content { padding-left: 60px; padding-right: 10px; }
@@ -502,33 +502,8 @@
             .note-name { font-size: 12px; width: 35px; }
         }
         
-        /* มือถือขนาดกลาง-เล็ก (Idea 2: Responsive Staff) */
         @media (max-width: 500px) {
              .piano { transform: scale(0.48); margin-bottom: -60px;}
-             
-             /* ปรับขนาดบรรทัด 5 เส้นและตัวโน้ตให้เล็กลงสัมพันธ์กัน */
-             .staff-content { padding-left: 40px; padding-right: 5px; }
-             .g-clef { height: 110px; left: -5px; top: -5px; }
-             .whole-note { width: 20px; }
-             
-             /* ชดเชยตำแหน่งเส้นน้อยและชื่อโน้ตด้วย margin-top ให้ตรงกับ JS */
-             .ledger-line { width: 32px; border-top-width: 2px; margin-top: -2px; }
-             .accidental { font-size: 24px; transform: translateX(-24px); margin-top: 4px; }
-             .note-name { font-size: 10px; width: 30px; padding: 1px 0; margin-top: -5px; }
-        }
-
-        /* มือถือขนาดเล็กมาก (iPhone SE ฯลฯ) */
-        @media (max-width: 400px) {
-             .piano { transform: scale(0.42); margin-bottom: -70px;}
-             
-             /* บีบตัวโน้ตลงไปอีกเพื่อไม่ให้ซ้อนทับกัน */
-             .staff-content { padding-left: 30px; padding-right: 0px; }
-             .g-clef { height: 95px; left: -8px; top: 2px; }
-             .whole-note { width: 16px; }
-             
-             .ledger-line { width: 26px; border-top-width: 2px; margin-top: -4px; }
-             .accidental { font-size: 20px; transform: translateX(-18px); margin-top: 6px; }
-             .note-name { font-size: 9px; width: 26px; margin-top: -10px; }
         }
 
     </style>
